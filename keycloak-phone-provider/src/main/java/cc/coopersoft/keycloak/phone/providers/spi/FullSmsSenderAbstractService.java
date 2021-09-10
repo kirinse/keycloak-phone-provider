@@ -2,7 +2,6 @@ package cc.coopersoft.keycloak.phone.providers.spi;
 
 import cc.coopersoft.keycloak.phone.providers.constants.TokenCodeType;
 import cc.coopersoft.keycloak.phone.providers.exception.MessageSendException;
-import org.keycloak.models.KeycloakSession;
 
 public abstract class FullSmsSenderAbstractService implements MessageSenderService{
 

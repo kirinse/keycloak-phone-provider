@@ -1,22 +1,21 @@
-package cc.coopersoft.keycloak.phone.providers.sender;
+package io.jumbo.keycloak.phone.providers.sender;
 
 import cc.coopersoft.keycloak.phone.providers.spi.MessageSenderService;
 import cc.coopersoft.keycloak.phone.providers.spi.MessageSenderServiceProviderFactory;
-import org.keycloak.Config.Scope;
+import org.keycloak.Config;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.KeycloakSessionFactory;
 
-public class TwilioMessageSenderServiceProviderFactory implements MessageSenderServiceProviderFactory {
-
-    private Scope config;
+public class JuheMessageSenderServiceProviderFactory implements MessageSenderServiceProviderFactory {
+    private Config.Scope config;
 
     @Override
-    public MessageSenderService create(KeycloakSession session) {
-        return new TwilioSmsSenderServiceProvider(config, session.getContext().getRealm().getDisplayName());
+    public MessageSenderService create(KeycloakSession keycloakSession) {
+        return new JuheSmsSenderServiceProvider(config, keycloakSession.getContext().getRealm());
     }
 
     @Override
-    public void init(Scope config) {
+    public void init(Config.Scope config) {
         this.config = config;
     }
 
@@ -30,6 +29,6 @@ public class TwilioMessageSenderServiceProviderFactory implements MessageSenderS
 
     @Override
     public String getId() {
-        return "twilio";
+        return "juhe";
     }
 }

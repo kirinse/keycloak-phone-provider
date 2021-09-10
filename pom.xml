@@ -13,7 +13,7 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <version.keycloak>11.0.3</version.keycloak>
+        <version.keycloak>15.0.2</version.keycloak>
 
         <docker.image.name>coopersoft/keycloak-phone</docker.image.name>
 
@@ -29,6 +29,7 @@
         <module>keycloak-sms-provider-yunxin</module>
         <module>keycloak-sms-provider-aliyun</module>
         <module>keycloak-sms-provider-tencent</module>
+        <module>keycloak-sms-provider-juhe</module>
     </modules>
 
     <dependencies>

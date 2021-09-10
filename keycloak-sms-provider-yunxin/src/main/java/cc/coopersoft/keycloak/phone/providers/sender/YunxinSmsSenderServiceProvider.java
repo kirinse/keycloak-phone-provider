@@ -8,7 +8,6 @@ import org.apache.http.HttpResponse;
 import org.apache.http.NameValuePair;
 import org.apache.http.client.entity.UrlEncodedFormEntity;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.client.HttpClientBuilder;
 import org.apache.http.message.BasicHeader;
 import org.apache.http.message.BasicNameValuePair;
@@ -17,8 +16,8 @@ import org.keycloak.Config;
 import org.keycloak.models.RealmModel;
 
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -70,7 +69,7 @@ public class YunxinSmsSenderServiceProvider implements MessageSenderService {
        * 2.具体的code有问题的可以参考官网的Code状态表
        */
       httpPost.setEntity(new UrlEncodedFormEntity(nvps, "utf-8"));
-      HttpResponse response = HttpClientBuilder.create().setDefaultHeaders(List.of(
+      HttpResponse response = HttpClientBuilder.create().setDefaultHeaders(Arrays.asList(
               new BasicHeader(HttpHeaders.CONTENT_TYPE, "application/x-www-form-urlencoded;charset=utf-8"),
               new BasicHeader("AppKey",config.get(realm.getName().toUpperCase() + "_APP_ID") ),
               new BasicHeader("Nonce",code),

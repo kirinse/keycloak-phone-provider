@@ -18,8 +18,11 @@ import org.keycloak.models.utils.FormMessage;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.services.messages.Messages;
-import org.keycloak.services.resources.AttributeFormDataProcessor;
+//import org.keycloak.services.resources.AttributeFormDataProcessor;
 import org.keycloak.services.validation.Validation;
+import org.keycloak.userprofile.UserProfile;
+import org.keycloak.userprofile.UserProfileContext;
+import org.keycloak.userprofile.UserProfileProvider;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
@@ -153,12 +156,21 @@ public class RegistrationPhoneAsUserNameCreation implements FormActionFactory, F
 
         context.getEvent().detail(Details.USERNAME, username)
                 .detail(Details.REGISTER_METHOD, "form");
-        UserModel user = context.getSession().users().addUser(context.getRealm(), username);
+        KeycloakSession session = context.getSession();
+
+//        UserModel user = context.getSession().users().addUser(context.getRealm(), username);
+        UserProfileProvider profileProvider = session.getProvider(UserProfileProvider.class);
+        UserProfile profile = profileProvider.create(UserProfileContext.REGISTRATION_USER_CREATION, formData);
+        UserModel user = profile.create();
+
         user.setEnabled(true);
+        context.setUser(user);
 
         context.getAuthenticationSession().setClientNote(OIDCLoginProtocol.LOGIN_HINT_PARAM, username);
-        AttributeFormDataProcessor.process(formData, context.getRealm(), user);
-        context.setUser(user);
+
+//        AttributeFormDataProcessor.process(formData, context.getRealm(), user);
+//        context.setUser(user);
+
         context.getEvent().user(user);
         context.getEvent().success();
         context.newEvent().event(EventType.LOGIN);
@@ -170,7 +182,7 @@ public class RegistrationPhoneAsUserNameCreation implements FormActionFactory, F
             context.getEvent().detail(Details.AUTH_TYPE, authType);
         }
 
-        logger.info(String.format("user: %s is created, user name is %s ",user.getId(), user.getUsername()));
+        logger.infov("user: %s is created, user name is %s",user.getId(), user.getUsername());
     }
 
     @Override

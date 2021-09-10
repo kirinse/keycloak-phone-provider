@@ -11,9 +11,7 @@ import com.aliyuncs.exceptions.ClientException;
 import com.aliyuncs.exceptions.ServerException;
 import com.aliyuncs.http.MethodType;
 import com.aliyuncs.profile.DefaultProfile;
-import com.aliyuncs.profile.IClientProfile;
 import org.keycloak.Config;
-import org.keycloak.models.KeycloakContext;
 import org.keycloak.models.RealmModel;
 
 public class AliyunSmsSenderServiceProvider implements MessageSenderService {
