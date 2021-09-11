@@ -21,7 +21,8 @@ import java.util.function.Supplier;
 public class JuheSmsSenderServiceProvider implements MessageSenderService {
     private final Config.Scope config;
     private final RealmModel realm;
-    private static final String KEY_PARAM_NAME = "juhe_key";
+    private static final String KEY_PARAM_NAME = "JUHE_KEY";
+    private static final String TEMPLATE_PARAM_NAME = "TEMPLATE";
 
     private Supplier<CloseableHttpClient> httpClient = JuheSmsSenderServiceProvider::newCloseableHttpClient;
 
@@ -42,26 +43,38 @@ public class JuheSmsSenderServiceProvider implements MessageSenderService {
     @Override
     public void sendSmsMessage(TokenCodeType type, String phoneNumber, String code, int expires) throws MessageSendException {
         HashMap<String, String> params = new HashMap<>();
+//        logger.infov("----- realm: {0}, config {1}", realm.getName(), config);
+
         String apiKey = Optional.ofNullable(config.get(realm.getName().toUpperCase() + "_" + KEY_PARAM_NAME))
                 .orElse(config.get(KEY_PARAM_NAME));
+        String templateConfigParamNameWithRealm = realm.getName().toUpperCase() + "_" + type.name().toUpperCase() + "_" + TEMPLATE_PARAM_NAME;
+        String templateConfigParamName = type.name().toUpperCase() + "_" + TEMPLATE_PARAM_NAME;
 
+//        logger.infov("---- expected config name: {0} || {1}", templateConfigParamNameWithRealm, templateConfigParamName);
+//        logger.infov("---- {0}, {1}", config.get(templateConfigParamNameWithRealm), config.get(templateConfigParamName));
+
+        String templateId = Optional.ofNullable(config.get(templateConfigParamNameWithRealm))
+                .orElse(config.get(templateConfigParamName));
 
         String tplValue = String.format("#code#=%s", code);
-        String templateId = config.get(realm.getName().toUpperCase() + "_" + type.name().toUpperCase() + "_TEMPLATE");
 
-        params.put("tplid", templateId);
+        params.put("tpl_id", templateId);
         params.put("mobile", phoneNumber);
         params.put("tpl_value", tplValue);
         params.put("key", apiKey);
 
         try (CloseableHttpClient client = httpClient.get()) {
+            String url = appendParameterToUrl(params);
+//            logger.infov("----- url = {0}", url);
             JuheResult result = SimpleHttp.doGet(appendParameterToUrl(params), client).asJson(JuheResult.class);
-            logger.infov("----- juhe send result: {0}", result);
             if (result.getErrorCode() != 0) {
-                logger.errorv("---- juhe send error: %d, coz: %s.", result.getErrorCode(), result.getReason());
+//                logger.errorv("---- juhe send error: {0}, coz: {1}.", result.getErrorCode(), result.getReason());
+                throw new MessageSendException(result.getErrorCode(),
+                        String.valueOf(result.getErrorCode()),
+                        result.getReason());
             }
         } catch (IOException e) {
-            throw new RuntimeException("Failed to retrieve keys", e);
+            throw new RuntimeException("Failed to connect juhe", e);
         }
     }
 

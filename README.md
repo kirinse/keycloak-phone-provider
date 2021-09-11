@@ -46,7 +46,7 @@ run as `docker-compose up` , docker-compose is required! (image base on [keycloa
 
 If you want to build the project, simply run `mvn clean package docker:build` after cloning the repository. 
 At the end of the goal.
- + local keycloak installed: copt the `target` directory  all jars correctly placed in a WildFly-like folder structure. 
+ + local keycloak installed: copy the `target` directory  all jars correctly placed in a WildFly-like folder structure. 
  + docker image build: for examples [run-local.sh](https://github.com/cooper-lyt/keycloak-phone-provider/blob/master/examples/snapshot/run-local.sh) or [run-remote.sh](https://github.com/cooper-lyt/keycloak-phone-provider/blob/master/examples/snapshot/run-remote.sh).
 
 
@@ -103,7 +103,7 @@ Under Authentication > Flows:
 Under 'Clients > $YOUR_CLIENT > Authentication Flow Overrides' or 'Authentication > Bindings' 
 Set Direct Grant Flow to 'Direct grant with phone' 
 
-**Everybody phone number( if not exists create user by phone number) get Access token use endpoints:**
+**Everybody phones number( if not exists create user by phone number) get Access token use endpoints:**
 
 Under Authentication > Flows:
  + Copy the 'Direct Grant' flow to 'Direct grant everybody with phone' flow
