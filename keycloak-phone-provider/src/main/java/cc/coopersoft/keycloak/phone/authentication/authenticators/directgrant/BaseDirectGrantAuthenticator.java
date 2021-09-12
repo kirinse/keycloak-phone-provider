@@ -20,32 +20,33 @@ public abstract class BaseDirectGrantAuthenticator implements Authenticator {
         return Response.status(status).entity(errorRep).type(MediaType.APPLICATION_JSON_TYPE).build();
     }
 
-    protected String getPhoneNumber(AuthenticationFlowContext context){
+    protected String getPhoneNumber(AuthenticationFlowContext context) {
         return Optional.ofNullable(context.getHttpRequest().getDecodedFormParameters().getFirst("phone_number")).orElse(
                 context.getHttpRequest().getDecodedFormParameters().getFirst("phoneNumber"));
     }
 
-    protected String getAuthenticationCode(AuthenticationFlowContext context){
+    protected String getAuthenticationCode(AuthenticationFlowContext context) {
         return context.getHttpRequest().getDecodedFormParameters().getFirst("code");
     }
 
-    protected void invalidCredentials(AuthenticationFlowContext context,AuthenticationFlowError error){
+    protected void invalidCredentials(AuthenticationFlowContext context, AuthenticationFlowError error) {
         context.getEvent().error(Errors.INVALID_USER_CREDENTIALS);
         Response challenge = errorResponse(Response.Status.UNAUTHORIZED.getStatusCode(), "invalid_grant", "Invalid user credentials");
         context.failure(error, challenge);
     }
 
-    protected void invalidCredentials(AuthenticationFlowContext context, UserModel user){
+    protected void invalidCredentials(AuthenticationFlowContext context, UserModel user) {
         context.getEvent().user(user);
-        invalidCredentials(context,AuthenticationFlowError.INVALID_CREDENTIALS);
+        invalidCredentials(context, AuthenticationFlowError.INVALID_CREDENTIALS);
     }
 
-    protected void invalidCredentials(AuthenticationFlowContext context){
-        invalidCredentials(context,AuthenticationFlowError.INVALID_USER);
+    protected void invalidCredentials(AuthenticationFlowContext context) {
+        invalidCredentials(context, AuthenticationFlowError.INVALID_USER);
     }
 
     @Override
-    public void close() {}
+    public void close() {
+    }
 
     @Override
     public boolean configuredFor(KeycloakSession session, RealmModel realm, UserModel user) {

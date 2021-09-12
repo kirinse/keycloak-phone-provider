@@ -43,21 +43,23 @@ public class JuheSmsSenderServiceProvider implements MessageSenderService {
     @Override
     public void sendSmsMessage(TokenCodeType type, String phoneNumber, String code, int expires) throws MessageSendException {
         HashMap<String, String> params = new HashMap<>();
-//        logger.infov("----- realm: {0}, config {1}", realm.getName(), config);
-
         String apiKey = Optional.ofNullable(config.get(realm.getName().toUpperCase() + "_" + KEY_PARAM_NAME))
                 .orElse(config.get(KEY_PARAM_NAME));
         String templateConfigParamNameWithRealm = realm.getName().toUpperCase() + "_" + type.name().toUpperCase() + "_" + TEMPLATE_PARAM_NAME;
         String templateConfigParamName = type.name().toUpperCase() + "_" + TEMPLATE_PARAM_NAME;
 
-//        logger.infov("---- expected config name: {0} || {1}", templateConfigParamNameWithRealm, templateConfigParamName);
-//        logger.infov("---- {0}, {1}", config.get(templateConfigParamNameWithRealm), config.get(templateConfigParamName));
-
         String templateId = Optional.ofNullable(config.get(templateConfigParamNameWithRealm))
                 .orElse(config.get(templateConfigParamName));
-
         String tplValue = String.format("#code#=%s", code);
 
+        if (phoneNumber.startsWith("+") && phoneNumber.length() > 11) {
+            if (!phoneNumber.startsWith("+86")) {
+                throw new MessageSendException(400,
+                        "10001",
+                        "phoneNumber invalid");
+            }
+            phoneNumber = phoneNumber.substring(phoneNumber.length() - 11);
+        }
         params.put("tpl_id", templateId);
         params.put("mobile", phoneNumber);
         params.put("tpl_value", tplValue);
@@ -65,10 +67,8 @@ public class JuheSmsSenderServiceProvider implements MessageSenderService {
 
         try (CloseableHttpClient client = httpClient.get()) {
             String url = appendParameterToUrl(params);
-//            logger.infov("----- url = {0}", url);
             JuheResult result = SimpleHttp.doGet(appendParameterToUrl(params), client).asJson(JuheResult.class);
             if (result.getErrorCode() != 0) {
-//                logger.errorv("---- juhe send error: {0}, coz: {1}.", result.getErrorCode(), result.getReason());
                 throw new MessageSendException(result.getErrorCode(),
                         String.valueOf(result.getErrorCode()),
                         result.getReason());

@@ -17,7 +17,6 @@ import org.keycloak.models.utils.FormMessage;
 import org.keycloak.protocol.oidc.OIDCLoginProtocol;
 import org.keycloak.provider.ProviderConfigProperty;
 import org.keycloak.services.messages.Messages;
-//import org.keycloak.services.resources.AttributeFormDataProcessor;
 import org.keycloak.services.validation.Validation;
 import org.keycloak.userprofile.UserProfile;
 import org.keycloak.userprofile.UserProfileContext;
@@ -25,8 +24,9 @@ import org.keycloak.userprofile.UserProfileProvider;
 
 import javax.ws.rs.core.MultivaluedMap;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
+
+//import org.keycloak.services.resources.AttributeFormDataProcessor;
 
 /**
  * replace  org.keycloak.authentication.forms.RegistrationUserCreation.java
@@ -37,7 +37,7 @@ public class RegistrationPhoneAsUserNameCreation implements FormActionFactory, F
 
     public static final String PROVIDER_ID = "registration-phone-username-creation";
 
-    private static AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {
+    private static final AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {
             AuthenticationExecutionModel.Requirement.REQUIRED, AuthenticationExecutionModel.Requirement.DISABLED};
 
 
@@ -163,7 +163,6 @@ public class RegistrationPhoneAsUserNameCreation implements FormActionFactory, F
         UserProfile profile = profileProvider.create(UserProfileContext.REGISTRATION_USER_CREATION, profileData);
 
         UserModel user = profile.create();
-        logger.infov("==== {0}", user.getUsername());
 
         user.setEnabled(true);
 

@@ -14,7 +14,7 @@
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
         <version.keycloak>15.0.2</version.keycloak>
-
+        <version.libphonenumber>8.12.32</version.libphonenumber>
         <docker.image.name>coopersoft/keycloak-phone</docker.image.name>
 
     </properties>

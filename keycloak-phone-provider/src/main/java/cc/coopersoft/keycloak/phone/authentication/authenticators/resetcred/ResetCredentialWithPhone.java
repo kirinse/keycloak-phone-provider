@@ -35,7 +35,6 @@ public class ResetCredentialWithPhone extends ResetCredentialChooseUser {
     public void authenticate(AuthenticationFlowContext context) {
 
 
-
         super.authenticate(context);
 
         Response challenge = context.form()
@@ -74,8 +73,8 @@ public class ResetCredentialWithPhone extends ResetCredentialChooseUser {
 
         if (user == null) {
 
-            user = UserUtils.findUserByPhone(context.getSession().users(),context.getRealm(),phoneNumber);
-            if ((user == null) || !validateVerificationCode(context,user)) {
+            user = UserUtils.findUserByPhone(context.getSession().users(), context.getRealm(), phoneNumber);
+            if ((user == null) || !validateVerificationCode(context, user)) {
                 Response challenge = context.form()
                         .setError(Messages.INVALID_USER)
 //                        .setAttribute("captchaKey", siteKey)

@@ -22,6 +22,7 @@ public class PhoneMessageServiceSpi implements Spi {
     }
 
     @Override
+    @SuppressWarnings("rawtypes")
     public Class<? extends ProviderFactory> getProviderFactoryClass() {
         return PhoneMessageServiceProviderFactory.class;
     }

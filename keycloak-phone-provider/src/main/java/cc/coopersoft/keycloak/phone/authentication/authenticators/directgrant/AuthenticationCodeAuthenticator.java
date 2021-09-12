@@ -4,15 +4,9 @@ import cc.coopersoft.keycloak.phone.providers.constants.TokenCodeType;
 import cc.coopersoft.keycloak.phone.providers.spi.TokenCodeService;
 import org.jboss.logging.Logger;
 import org.keycloak.authentication.AuthenticationFlowContext;
-import org.keycloak.authentication.AuthenticationFlowError;
-import org.keycloak.events.Errors;
-import org.keycloak.models.AuthenticatorConfigModel;
 import org.keycloak.models.KeycloakSession;
 import org.keycloak.models.RealmModel;
 import org.keycloak.models.UserModel;
-
-import javax.ws.rs.core.Response;
-import java.util.Optional;
 
 
 public class AuthenticationCodeAuthenticator extends BaseDirectGrantAuthenticator {
@@ -37,13 +31,12 @@ public class AuthenticationCodeAuthenticator extends BaseDirectGrantAuthenticato
 
     @Override
     public void authenticate(AuthenticationFlowContext context) {
-        if (!validateVerificationCode(context,getPhoneNumber(context))) {
-            invalidCredentials(context,context.getUser());
+        if (!validateVerificationCode(context, getPhoneNumber(context))) {
+            invalidCredentials(context, context.getUser());
             return;
         }
         context.success();
     }
-
 
 
     private boolean validateVerificationCode(AuthenticationFlowContext context, String phoneNumber) {
@@ -60,7 +53,7 @@ public class AuthenticationCodeAuthenticator extends BaseDirectGrantAuthenticato
             context.getSession().getProvider(TokenCodeService.class).validateCode(context.getUser(), phoneNumber, code, TokenCodeType.OTP);
             return true;
         } catch (Exception e) {
-            logger.info("Grant authenticator valid code failure",e);
+            logger.info("Grant authenticator valid code failure", e);
             return false;
         }
 

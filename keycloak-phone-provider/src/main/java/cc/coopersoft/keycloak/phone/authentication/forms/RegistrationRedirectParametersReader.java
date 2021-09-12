@@ -17,7 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-public class RegistrationRedirectParametersReader implements  FormActionFactory, FormAction {
+public class RegistrationRedirectParametersReader implements FormActionFactory, FormAction {
 
     private static final Logger logger = Logger.getLogger(RegistrationRedirectParametersReader.class);
 
@@ -37,10 +37,10 @@ public class RegistrationRedirectParametersReader implements  FormActionFactory,
         configProperties.add(acceptParamName);
     }
 
-    private static AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {
-            AuthenticationExecutionModel.Requirement.REQUIRED, AuthenticationExecutionModel.Requirement.DISABLED };
+    private static final AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {
+            AuthenticationExecutionModel.Requirement.REQUIRED, AuthenticationExecutionModel.Requirement.DISABLED};
 
-    private static String[] QUERY_PARAM_BLACKLIST = {
+    private static final String[] QUERY_PARAM_BLACKLIST = {
             "execution",
             "session_code",
             "client_id",
@@ -130,11 +130,9 @@ public class RegistrationRedirectParametersReader implements  FormActionFactory,
     public void success(FormContext context) {
 
 
-
-
         String redirectUri = context.getAuthenticationSession().getRedirectUri();
         logger.info("add user attribute form redirectUri:" + redirectUri);
-        if (Validation.isBlank(redirectUri)){
+        if (Validation.isBlank(redirectUri)) {
             logger.error("no referer. cant get param in keycloak version");
             return;
         }
@@ -151,7 +149,7 @@ public class RegistrationRedirectParametersReader implements  FormActionFactory,
             logger.info("allow query param names:" + finalParamNames);
             url.queryParameterNames()
                     .stream()
-                    .filter(v -> (finalParamNames != null && finalParamNames.length > 0) ? Arrays.asList(finalParamNames).contains(v) : !Validation.isBlank(v) && v.length() < 32 && Arrays.stream(QUERY_PARAM_BLACKLIST).noneMatch(item -> item.equals(v)) )
+                    .filter(v -> (finalParamNames != null && finalParamNames.length > 0) ? Arrays.asList(finalParamNames).contains(v) : !Validation.isBlank(v) && v.length() < 32 && Arrays.stream(QUERY_PARAM_BLACKLIST).noneMatch(item -> item.equals(v)))
 
                     .forEach(v -> user.setAttribute(v, url.queryParameterValues(v)));
 

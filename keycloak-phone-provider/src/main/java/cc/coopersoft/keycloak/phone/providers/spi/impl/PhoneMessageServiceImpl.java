@@ -21,10 +21,10 @@ public class PhoneMessageServiceImpl implements PhoneMessageService {
     private final String service;
     private final int tokenExpiresIn;
     private final int hourMaximum;
+    private final int tokenLen;
 
     PhoneMessageServiceImpl(KeycloakSession session, Scope config) {
         this.session = session;
-
         this.service = session.listProviderIds(MessageSenderService.class)
                 .stream().filter(s -> s.equals(config.get("service")))
                 .findFirst().orElse(
@@ -32,7 +32,8 @@ public class PhoneMessageServiceImpl implements PhoneMessageService {
                                 .stream().findFirst().orElse("")
                 );
         this.tokenExpiresIn = config.getInt("tokenExpiresIn", 60);
-        this.hourMaximum = config.getInt("hourMaximum",3);
+        this.hourMaximum = config.getInt("hourMaximum", 3);
+        this.tokenLen = config.getInt("tokenLength", 6);
     }
 
     @Override
@@ -45,29 +46,26 @@ public class PhoneMessageServiceImpl implements PhoneMessageService {
     }
 
     @Override
-    public int sendTokenCode(String phoneNumber,TokenCodeType type){
-        if (getTokenCodeService().isAbusing(phoneNumber, type,hourMaximum)) {
+    public int sendTokenCode(String phoneNumber, TokenCodeType type) {
+        if (getTokenCodeService().isAbusing(phoneNumber, type, hourMaximum)) {
             throw new ForbiddenException("You requested the maximum number of messages the last hour");
         }
 
         TokenCodeRepresentation ongoing = getTokenCodeService().ongoingProcess(phoneNumber, type);
         if (ongoing != null) {
-            logger.info(String.format("No need of sending a new %s code for %s",type.getLabel(), phoneNumber));
+            logger.infov("No need of sending a new {0} code for {1}", type.getLabel(), phoneNumber);
             return (int) (ongoing.getExpiresAt().getTime() - Instant.now().toEpochMilli()) / 1000;
         }
 
-        TokenCodeRepresentation token = TokenCodeRepresentation.forPhoneNumber(phoneNumber);
+        TokenCodeRepresentation token = TokenCodeRepresentation.forPhoneNumber(phoneNumber, tokenLen);
 
         try {
-            session.getProvider(MessageSenderService.class, service).sendSmsMessage(type,phoneNumber,token.getCode(),tokenExpiresIn);
+            session.getProvider(MessageSenderService.class, service).sendSmsMessage(type, phoneNumber, token.getCode(), tokenExpiresIn);
             getTokenCodeService().persistCode(token, type, tokenExpiresIn);
-
-            logger.info(String.format("Sent %s code to %s over %s",type.getLabel(), phoneNumber, service));
-
+            logger.infov("Sent {0} code to {1} over {2}", type.getLabel(), phoneNumber, service);
         } catch (MessageSendException e) {
-
-            logger.error(String.format("Message sending to %s failed with %s: %s",
-                    phoneNumber, e.getErrorCode(), e.getErrorMessage()));
+            logger.errorv("Message sending to {0} failed with {1}: {2}",
+                    phoneNumber, e.getErrorCode(), e.getErrorMessage());
             throw new ServiceUnavailableException("Internal server error");
         }
 

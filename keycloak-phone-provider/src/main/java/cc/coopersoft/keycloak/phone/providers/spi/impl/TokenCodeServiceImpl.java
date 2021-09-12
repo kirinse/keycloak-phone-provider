@@ -75,7 +75,7 @@ public class TokenCodeServiceImpl implements TokenCodeService {
     }
 
     @Override
-    public boolean isAbusing(String phoneNumber, TokenCodeType tokenCodeType,int hourMaximum) {
+    public boolean isAbusing(String phoneNumber, TokenCodeType tokenCodeType, int hourMaximum) {
 
         Date oneHourAgo = new Date(System.currentTimeMillis() - TimeUnit.HOURS.toMillis(1));
 
@@ -104,7 +104,6 @@ public class TokenCodeServiceImpl implements TokenCodeService {
         entity.setCreatedAt(Date.from(now));
         entity.setExpiresAt(Date.from(now.plusSeconds(tokenExpiresIn)));
         entity.setConfirmed(tokenCode.getConfirmed());
-
         getEntityManager().persist(entity);
     }
 
@@ -126,7 +125,7 @@ public class TokenCodeServiceImpl implements TokenCodeService {
 
         logger.info(String.format("User %s correctly answered the %s code", user.getId(), tokenCodeType.getLabel()));
 
-        tokenValidated(user,phoneNumber,tokenCode.getId());
+        tokenValidated(user, phoneNumber, tokenCode.getId());
 
     }
 
@@ -134,8 +133,8 @@ public class TokenCodeServiceImpl implements TokenCodeService {
     public void tokenValidated(UserModel user, String phoneNumber, String tokenCodeId) {
 
         session.users()
-                .searchForUserByUserAttribute("phoneNumber", phoneNumber, session.getContext().getRealm())
-                .stream().filter(u -> !u.getId().equals(user.getId()))
+                .searchForUserByUserAttributeStream(session.getContext().getRealm(), "phoneNumber", phoneNumber)
+                .filter(u -> !u.getId().equals(user.getId()))
                 .forEach(u -> {
                     logger.info(String.format("User %s also has phone number %s. Un-verifying.", u.getId(), phoneNumber));
                     u.setSingleAttribute("phoneNumberVerified", "false");
@@ -163,13 +162,15 @@ public class TokenCodeServiceImpl implements TokenCodeService {
                 session.getProvider(CredentialProvider.class, PhoneOtpCredentialProviderFactory.PROVIDER_ID);
         if (socp.isConfiguredFor(getRealm(), user, PhoneOtpCredentialModel.TYPE)) {
             CredentialModel credential = session.userCredentialManager()
-                    .getStoredCredentialsByType(getRealm(), user, PhoneOtpCredentialModel.TYPE).get(0);
-            credential.setCredentialData("{\"phoneNumber\":\"" + user.getFirstAttribute("phoneNumber") + "\"}");
-            PhoneOtpCredentialModel credentialModel = PhoneOtpCredentialModel.createFromCredentialModel(credential);
-            session.userCredentialManager().updateCredential(getRealm(), user, credentialModel);
+                    .getStoredCredentialsByTypeStream(getRealm(), user, PhoneOtpCredentialModel.TYPE)
+                    .findFirst().orElse(null);
+            if (credential != null) {
+                credential.setCredentialData("{\"phoneNumber\":\"" + user.getFirstAttribute("phoneNumber") + "\"}");
+                PhoneOtpCredentialModel credentialModel = PhoneOtpCredentialModel.createFromCredentialModel(credential);
+                session.userCredentialManager().updateCredential(getRealm(), user, credentialModel);
+            }
         }
     }
-
 
 
     @Override

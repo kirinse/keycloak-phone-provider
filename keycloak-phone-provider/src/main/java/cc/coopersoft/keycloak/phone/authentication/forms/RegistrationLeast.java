@@ -17,7 +17,7 @@ public class RegistrationLeast implements FormActionFactory, FormAction {
 
     public static final String PROVIDER_ID = "registration-least";
 
-    private static AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {
+    private static final AuthenticationExecutionModel.Requirement[] REQUIREMENT_CHOICES = {
             AuthenticationExecutionModel.Requirement.REQUIRED, AuthenticationExecutionModel.Requirement.DISABLED };
 
 
