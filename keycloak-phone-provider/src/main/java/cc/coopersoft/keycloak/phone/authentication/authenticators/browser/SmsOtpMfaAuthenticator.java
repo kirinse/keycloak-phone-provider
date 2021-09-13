@@ -5,6 +5,7 @@ import cc.coopersoft.keycloak.phone.credential.PhoneOtpCredentialProvider;
 import cc.coopersoft.keycloak.phone.credential.PhoneOtpCredentialProviderFactory;
 import cc.coopersoft.keycloak.phone.providers.constants.TokenCodeType;
 import cc.coopersoft.keycloak.phone.providers.spi.PhoneMessageService;
+import com.google.i18n.phonenumbers.NumberParseException;
 import org.jboss.resteasy.spi.HttpResponse;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationFlowError;
@@ -12,9 +13,11 @@ import org.keycloak.authentication.Authenticator;
 import org.keycloak.authentication.CredentialValidator;
 import org.keycloak.common.util.ServerCookie;
 import org.keycloak.credential.CredentialProvider;
+import org.keycloak.forms.login.LoginFormsProvider;
 import org.keycloak.models.*;
 
 import javax.ws.rs.ForbiddenException;
+import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
@@ -85,14 +88,20 @@ public class SmsOtpMfaAuthenticator implements Authenticator, CredentialValidato
         }
         PhoneMessageService phoneMessageService = context.getSession().getProvider(PhoneMessageService.class);
         String phoneNumber = context.getUser().getFirstAttribute("phoneNumber");
-        Response challenge;
+        LoginFormsProvider form = context.form();
+        String error;
         try {
             phoneMessageService.sendTokenCode(phoneNumber, TokenCodeType.OTP);
-            challenge = context.form().createForm("login-sms-otp.ftl");
         } catch (ForbiddenException e) {
-            challenge = context.form().setError("abusedMessageService").createForm("login-sms-otp.ftl");
+            form = form.setError("abusedMessageService");
+        } catch (NumberParseException npe) {
+            form = form.setError("invalidPhoneNumber");
+        } catch (ServiceUnavailableException e) {
+            form = form.setError("serviceUnavailable");
+        } catch (Exception e) {
+            form = form.setError("internalServerError");
         }
-        context.challenge(challenge);
+        context.challenge(form.createForm("login-sms-otp.ftl"));
     }
 
     @Override
