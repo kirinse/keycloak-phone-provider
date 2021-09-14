@@ -32,14 +32,12 @@ public class UpdatePhoneNumberRequiredAction implements RequiredActionProvider {
             tokenCodeService.validateCode(context.getUser(), phoneNumber, code);
             context.success();
         } catch (BadRequestException e) {
-
             Response challenge = context.form()
                     .setError("noOngoingVerificationProcess")
                     .createForm("login-update-phone-number.ftl");
             context.challenge(challenge);
 
         } catch (ForbiddenException e) {
-
             Response challenge = context.form()
                     .setAttribute("phoneNumber", phoneNumber)
                     .setError("verificationCodeDoesNotMatch")

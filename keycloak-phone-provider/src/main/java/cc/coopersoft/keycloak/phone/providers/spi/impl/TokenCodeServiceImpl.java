@@ -115,7 +115,7 @@ public class TokenCodeServiceImpl implements TokenCodeService {
     @Override
     public void validateCode(UserModel user, String phoneNumber, String code, TokenCodeType tokenCodeType) {
 
-        logger.info(String.format("valid %s , phone: %s, code: %s", tokenCodeType, phoneNumber, code));
+        logger.infov("validating {0} , phoneNumber: {1}, code: {2}", tokenCodeType, phoneNumber, code);
 
         TokenCodeRepresentation tokenCode = ongoingProcess(phoneNumber, tokenCodeType);
         if (tokenCode == null)
@@ -123,7 +123,7 @@ public class TokenCodeServiceImpl implements TokenCodeService {
 
         if (!tokenCode.getCode().equals(code)) throw new ForbiddenException("Code does not match with expected value");
 
-        logger.info(String.format("User %s correctly answered the %s code", user.getId(), tokenCodeType.getLabel()));
+        logger.infov("User {0} correctly answered the {1} code", user.getId(), tokenCodeType.getLabel());
 
         tokenValidated(user, phoneNumber, tokenCode.getId());
 
@@ -131,12 +131,11 @@ public class TokenCodeServiceImpl implements TokenCodeService {
 
     @Override
     public void tokenValidated(UserModel user, String phoneNumber, String tokenCodeId) {
-
         session.users()
                 .searchForUserByUserAttributeStream(session.getContext().getRealm(), "phoneNumber", phoneNumber)
                 .filter(u -> !u.getId().equals(user.getId()))
                 .forEach(u -> {
-                    logger.info(String.format("User %s also has phone number %s. Un-verifying.", u.getId(), phoneNumber));
+                    logger.infov("User {0} also has phone number {1}. Un-verifying.", u.getId(), phoneNumber);
                     u.setSingleAttribute("phoneNumberVerified", "false");
                 });
 

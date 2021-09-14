@@ -13,6 +13,7 @@ import org.jboss.logging.Logger;
 import org.keycloak.Config.Scope;
 import org.keycloak.models.KeycloakSession;
 
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.ServiceUnavailableException;
 import java.time.Instant;
@@ -66,6 +67,9 @@ public class PhoneMessageServiceImpl implements PhoneMessageService {
             logger.infov("isNumberValid: {0}", isNumberValid);
             logger.infov("numberType: {0}", numberType);
             logger.info("-----------------");
+            if ((!isPossible && !isNumberValid) || numberType != PhoneNumberUtil.PhoneNumberType.MOBILE) {
+                throw new NumberParseException(NumberParseException.ErrorType.NOT_A_NUMBER, "phoneNumber invalid");
+            }
         } catch (NumberParseException e) {
             logger.errorv("------- parse phoneNumber {0}, got {1}", phoneNumber, e);
             throw e;
@@ -84,12 +88,13 @@ public class PhoneMessageServiceImpl implements PhoneMessageService {
         TokenCodeRepresentation token = TokenCodeRepresentation.forPhoneNumber(phoneNumber, tokenLen);
 
         try {
-            session.getProvider(MessageSenderService.class, service).sendSmsMessage(type, phoneNumber, token.getCode(), tokenExpiresIn);
+//            session.getProvider(MessageSenderService.class, service).sendSmsMessage(type, phoneNumber, token.getCode(), tokenExpiresIn);
             getTokenCodeService().persistCode(token, type, tokenExpiresIn);
             logger.infov("Sent {0} code to {1} over {2}", type.getLabel(), phoneNumber, service);
-        } catch (MessageSendException e) {
-            logger.errorv("Message sending to {0} failed with {1}: {2}",
-                    phoneNumber, e.getErrorCode(), e.getErrorMessage());
+//        } catch (MessageSendException e) {
+        } catch (Exception e) {
+//            logger.errorv("Message sending to {0} failed with {1}: {2}",
+//                    phoneNumber, e.getErrorCode(), e.getErrorMessage());
             throw new ServiceUnavailableException("Internal server error");
         }
 
