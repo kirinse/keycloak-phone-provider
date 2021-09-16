@@ -10,9 +10,11 @@ import org.keycloak.authentication.RequiredActionContext;
 import org.keycloak.authentication.RequiredActionProvider;
 import org.keycloak.forms.login.LoginFormsProvider;
 import org.keycloak.models.UserModel;
+import org.keycloak.models.utils.FormMessage;
 import org.keycloak.sessions.AuthenticationSessionModel;
 
 import javax.ws.rs.BadRequestException;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
@@ -33,12 +35,12 @@ public class UpdatePhoneNumberRequiredAction implements RequiredActionProvider {
     public void evaluateTriggers(RequiredActionContext context) {
     }
 
-    private void setEnabledRegionAttribute(RequiredActionContext context, LoginFormsProvider form) {
+    private LoginFormsProvider setEnabledRegionAttribute(RequiredActionContext context, LoginFormsProvider form) {
         Map<String, String> countries = new HashMap<>();
         for (String region : context.getSession().getProvider(PhoneMessageService.class).getEnabledRegions()) {
             countries.put(region, String.format("+%s", phoneUtil.getCountryCodeForRegion(region)));
         }
-        form.setAttribute("countries", countries);
+        return form.setAttribute("countries", countries);
     }
 
     @Override
@@ -47,7 +49,7 @@ public class UpdatePhoneNumberRequiredAction implements RequiredActionProvider {
         LoginFormsProvider form = context.form();
         AuthenticationSessionModel authSession = context.getSession().getContext().getAuthenticationSession();
 
-        setEnabledRegionAttribute(context, form);
+        form = setEnabledRegionAttribute(context, form);
         String currentStep = authSession.getAuthNote(NOTE_NAME);
 
         if (currentStep == null || currentStep.equals("")) {
@@ -59,11 +61,7 @@ public class UpdatePhoneNumberRequiredAction implements RequiredActionProvider {
             String currentPhoneNumber = user.getAttributeStream("phoneNumber").findFirst().orElse(null);
             if (currentPhoneNumber != null) {
                 try {
-                    Phonenumber.PhoneNumber number = phoneUtil.parse(currentPhoneNumber, null);
-                    int countryCode = number.getCountryCode();
-                    form.setAttribute("currentCountryCode", String.format("+%s", countryCode));
-                    form.setAttribute("currentNumber", String.valueOf(number.getNationalNumber()));
-                    form.setAttribute("currentCountry", phoneUtil.getRegionCodeForCountryCode(countryCode));
+                    form = parsePhoneNumber(form, currentPhoneNumber, true);
                 } catch (NumberParseException e) {
                     currentStep = STEP_ADD;
                 }
@@ -72,8 +70,16 @@ public class UpdatePhoneNumberRequiredAction implements RequiredActionProvider {
             }
         }
         authSession.setAuthNote(NOTE_NAME, currentStep);
-        Response challenge = form.createForm(TPL);
-        context.challenge(challenge);
+        context.challenge(form.createForm(TPL));
+    }
+
+    private LoginFormsProvider parsePhoneNumber(LoginFormsProvider form, String currentPhoneNumber, boolean readonly) throws NumberParseException {
+        Phonenumber.PhoneNumber number = phoneUtil.parse(currentPhoneNumber, null);
+        int countryCode = number.getCountryCode();
+        return form.setAttribute("countryCode", String.format("+%s", countryCode))
+                .setAttribute("number", String.valueOf(number.getNationalNumber()))
+                .setAttribute("country", phoneUtil.getRegionCodeForCountryCode(countryCode))
+                .setAttribute("readonly", readonly);
     }
 
     @Override
@@ -92,33 +98,27 @@ public class UpdatePhoneNumberRequiredAction implements RequiredActionProvider {
             if (currentStep.equals(STEP_VERIFY)) {
                 tokenCodeService.validateCodeOnly(context.getUser(), phoneNumber, code);
                 authSession.setAuthNote(NOTE_NAME, STEP_ADD);
-                setEnabledRegionAttribute(context, form);
-                Response challenge = form.createForm(TPL);
-                context.challenge(challenge);
+                form = setEnabledRegionAttribute(context, form);
+                context.challenge(form.createForm(TPL));
             } else if (currentStep.equals(STEP_ADD)) {
-//                check if phoneNumber equals current one.
-//                boolean exists = context.getUser().getAttributeStream("phoneNumber").anyMatch(u -> u.equals(phoneNumber));
-//                if (exists) {
-//                    Response challenge = form.setError("phoneNumberInUse").createForm(TPL);
-//                    context.challenge(challenge);
-//                    return;
-//                }
                 tokenCodeService.validateCode(context.getUser(), phoneNumber, code);
                 authSession.removeAuthNote(NOTE_NAME);
                 context.getEvent().detail("phone_number", phoneNumber);
                 context.success();
             }
-        } catch (BadRequestException e) {
-            Response challenge = context.form()
-                    .setError("noOngoingVerificationProcess")
-                    .createForm(TPL);
-            context.challenge(challenge);
-        } catch (ForbiddenException e) {
-            Response challenge = context.form()
-                    .setAttribute("phoneNumber", phoneNumber)
-                    .setError("verificationCodeDoesNotMatch")
-                    .createForm(TPL);
-            context.challenge(challenge);
+        } catch (ClientErrorException e) {
+            if (e instanceof BadRequestException) {
+                form = form.setError("noOngoingVerificationProcess");
+            }
+            if (e instanceof ForbiddenException) {
+                form = form.addError(new FormMessage("code", "verificationCodeDoesNotMatch"));
+            }
+            try {
+                form = parsePhoneNumber(form, phoneNumber, currentStep.equals(STEP_VERIFY));
+            } catch (NumberParseException ignored) {
+                logger.errorf("parse phone number : %s error %s", phoneNumber, ignored);
+            }
+            context.challenge(form.createForm(TPL));
         }
     }
 
