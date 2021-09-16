@@ -113,6 +113,19 @@ public class TokenCodeServiceImpl implements TokenCodeService {
     }
 
     @Override
+    public void validateCodeOnly(UserModel user, String phoneNumber, String code) {
+        logger.infov("validating {0} , phoneNumber: {1}, code: {2}", TokenCodeType.VERIFY, phoneNumber, code);
+
+        TokenCodeRepresentation tokenCode = ongoingProcess(phoneNumber, TokenCodeType.VERIFY);
+        if (tokenCode == null)
+            throw new BadRequestException(String.format("There is no valid ongoing %s process", TokenCodeType.VERIFY.getLabel()));
+
+        if (!tokenCode.getCode().equals(code)) throw new ForbiddenException("Code does not match with expected value");
+        logger.infov("User {0} correctly answered the {1} code", user.getId(), TokenCodeType.VERIFY.getLabel());
+        validateProcess(tokenCode.getId(), user);
+    }
+
+    @Override
     public void validateCode(UserModel user, String phoneNumber, String code, TokenCodeType tokenCodeType) {
 
         logger.infov("validating {0} , phoneNumber: {1}, code: {2}", tokenCodeType, phoneNumber, code);

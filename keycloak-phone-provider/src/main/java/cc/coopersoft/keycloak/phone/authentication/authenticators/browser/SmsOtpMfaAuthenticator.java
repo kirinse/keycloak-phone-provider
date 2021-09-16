@@ -16,7 +16,7 @@ import org.keycloak.credential.CredentialProvider;
 import org.keycloak.forms.login.LoginFormsProvider;
 import org.keycloak.models.*;
 
-import javax.ws.rs.ForbiddenException;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServiceUnavailableException;
 import javax.ws.rs.core.Cookie;
 import javax.ws.rs.core.HttpHeaders;
@@ -92,7 +92,7 @@ public class SmsOtpMfaAuthenticator implements Authenticator, CredentialValidato
         String error;
         try {
             phoneMessageService.sendTokenCode(phoneNumber, TokenCodeType.OTP);
-        } catch (ForbiddenException e) {
+        } catch (ClientErrorException e) {
             form = form.setError("abusedMessageService");
         } catch (NumberParseException npe) {
             form = form.setError("invalidPhoneNumber");

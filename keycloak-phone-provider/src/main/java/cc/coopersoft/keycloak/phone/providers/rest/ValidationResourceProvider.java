@@ -12,7 +12,7 @@ public class ValidationResourceProvider implements RealmResourceProvider {
 
     @Override
     public Object getResource() {
-        return new ValidateResource(session);
+        return new ValidationResource(session);
     }
 
     @Override

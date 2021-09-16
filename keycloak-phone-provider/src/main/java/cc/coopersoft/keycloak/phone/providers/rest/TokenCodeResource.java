@@ -38,9 +38,9 @@ public class TokenCodeResource {
             int tokenExpiresIn = session.getProvider(PhoneMessageService.class).sendTokenCode(phoneNumber, tokenCodeType);
             body.put("expires_in", Integer.toString(tokenExpiresIn));
             return Response.ok(body, APPLICATION_JSON_TYPE).build();
-        } catch (ForbiddenException e) {
+        } catch (ClientErrorException e) {
             body.put("error", "abusedMessageService");
-            return Response.status(Response.Status.FORBIDDEN).entity(body).build();
+            return Response.status(Response.Status.TOO_MANY_REQUESTS).entity(body).build();
         } catch (NumberParseException npe) {
             body.put("error", "invalidPhoneNumber");
             return Response.status(Response.Status.BAD_REQUEST).entity(body).build();

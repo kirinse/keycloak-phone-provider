@@ -10,4 +10,6 @@ public interface PhoneMessageService extends Provider {
     //boolean Verification(String phoneNumber, String token);
 
     int sendTokenCode(String phoneNumber, TokenCodeType type) throws Exception;
+
+    String[] getEnabledRegions();
 }

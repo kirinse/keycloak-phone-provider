@@ -1,7 +1,6 @@
 package cc.coopersoft.keycloak.phone.providers.spi.impl;
 
 import cc.coopersoft.keycloak.phone.providers.constants.TokenCodeType;
-import cc.coopersoft.keycloak.phone.providers.exception.MessageSendException;
 import cc.coopersoft.keycloak.phone.providers.representations.TokenCodeRepresentation;
 import cc.coopersoft.keycloak.phone.providers.spi.MessageSenderService;
 import cc.coopersoft.keycloak.phone.providers.spi.PhoneMessageService;
@@ -13,9 +12,9 @@ import org.jboss.logging.Logger;
 import org.keycloak.Config.Scope;
 import org.keycloak.models.KeycloakSession;
 
-import javax.ws.rs.BadRequestException;
-import javax.ws.rs.ForbiddenException;
+import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ServiceUnavailableException;
+import javax.ws.rs.core.Response;
 import java.time.Instant;
 
 public class PhoneMessageServiceImpl implements PhoneMessageService {
@@ -26,6 +25,7 @@ public class PhoneMessageServiceImpl implements PhoneMessageService {
     private final int tokenExpiresIn;
     private final int hourMaximum;
     private final int tokenLen;
+    private final String[] enabledCountries;
 
     PhoneMessageServiceImpl(KeycloakSession session, Scope config) {
         this.session = session;
@@ -35,9 +35,10 @@ public class PhoneMessageServiceImpl implements PhoneMessageService {
                         session.listProviderIds(MessageSenderService.class)
                                 .stream().findFirst().orElse("")
                 );
-        this.tokenExpiresIn = config.getInt("tokenExpiresIn", 60);
-        this.hourMaximum = config.getInt("hourMaximum", 3);
-        this.tokenLen = config.getInt("tokenLength", 6);
+        this.tokenExpiresIn = config.getInt("token-expires-in", 60);
+        this.hourMaximum = config.getInt("hour-maximum", 3);
+        this.tokenLen = config.getInt("token-length", 6);
+        this.enabledCountries = config.getArray("enabled-regions");
     }
 
     @Override
@@ -74,9 +75,9 @@ public class PhoneMessageServiceImpl implements PhoneMessageService {
             logger.errorv("------- parse phoneNumber {0}, got {1}", phoneNumber, e);
             throw e;
         }
-
         if (getTokenCodeService().isAbusing(phoneNumber, type, hourMaximum)) {
-            throw new ForbiddenException("You requested the maximum number of messages the last hour");
+//            throw new NotAllowedException("You requested the maximum number of messages the last hour");
+            throw new ClientErrorException("You requested the maximum number of messages the last hour", Response.Status.TOO_MANY_REQUESTS);
         }
 
         TokenCodeRepresentation ongoing = getTokenCodeService().ongoingProcess(phoneNumber, type);
@@ -101,4 +102,8 @@ public class PhoneMessageServiceImpl implements PhoneMessageService {
         return tokenExpiresIn;
     }
 
+    @Override
+    public String[] getEnabledRegions() {
+        return this.enabledCountries;
+    }
 }

@@ -30,6 +30,7 @@
         <module>keycloak-sms-provider-aliyun</module>
         <module>keycloak-sms-provider-tencent</module>
         <module>keycloak-sms-provider-juhe</module>
+        <module>keycloak-sms-provider-aws-sns</module>
     </modules>
 
     <dependencies>
@@ -73,6 +74,7 @@
             <plugin>
                 <inherited>false</inherited>
                 <artifactId>maven-resources-plugin</artifactId>
+                <version>3.2.0</version>
                 <executions>
                     <execution>
                         <id>copy-resources</id>
