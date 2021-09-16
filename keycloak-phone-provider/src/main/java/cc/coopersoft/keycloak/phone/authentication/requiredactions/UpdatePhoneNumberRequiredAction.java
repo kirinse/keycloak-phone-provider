@@ -13,7 +13,7 @@ import org.keycloak.models.UserModel;
 import org.keycloak.sessions.AuthenticationSessionModel;
 
 import javax.ws.rs.BadRequestException;
-import javax.ws.rs.ClientErrorException;
+import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.Response;
 import java.util.HashMap;
@@ -96,8 +96,16 @@ public class UpdatePhoneNumberRequiredAction implements RequiredActionProvider {
                 Response challenge = form.createForm(TPL);
                 context.challenge(challenge);
             } else if (currentStep.equals(STEP_ADD)) {
+//                check if phoneNumber equals current one.
+//                boolean exists = context.getUser().getAttributeStream("phoneNumber").anyMatch(u -> u.equals(phoneNumber));
+//                if (exists) {
+//                    Response challenge = form.setError("phoneNumberInUse").createForm(TPL);
+//                    context.challenge(challenge);
+//                    return;
+//                }
                 tokenCodeService.validateCode(context.getUser(), phoneNumber, code);
                 authSession.removeAuthNote(NOTE_NAME);
+                context.getEvent().detail("phone_number", phoneNumber);
                 context.success();
             }
         } catch (BadRequestException e) {
@@ -105,7 +113,7 @@ public class UpdatePhoneNumberRequiredAction implements RequiredActionProvider {
                     .setError("noOngoingVerificationProcess")
                     .createForm(TPL);
             context.challenge(challenge);
-        } catch (ClientErrorException e) {
+        } catch (ForbiddenException e) {
             Response challenge = context.form()
                     .setAttribute("phoneNumber", phoneNumber)
                     .setError("verificationCodeDoesNotMatch")
