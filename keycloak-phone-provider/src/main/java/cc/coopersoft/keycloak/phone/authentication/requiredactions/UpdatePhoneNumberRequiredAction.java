@@ -17,7 +17,6 @@ import javax.ws.rs.BadRequestException;
 import javax.ws.rs.ClientErrorException;
 import javax.ws.rs.ForbiddenException;
 import javax.ws.rs.core.MultivaluedMap;
-import javax.ws.rs.core.Response;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -115,8 +114,8 @@ public class UpdatePhoneNumberRequiredAction implements RequiredActionProvider {
             }
             try {
                 form = parsePhoneNumber(form, phoneNumber, currentStep.equals(STEP_VERIFY));
-            } catch (NumberParseException ignored) {
-                logger.errorf("parse phone number : %s error %s", phoneNumber, ignored);
+            } catch (NumberParseException npe) {
+                logger.errorf("parse phone number : %s error %s", phoneNumber, npe.toString());
             }
             context.challenge(form.createForm(TPL));
         }
