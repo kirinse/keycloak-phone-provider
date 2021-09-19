@@ -1,5 +1,6 @@
 package cc.coopersoft.keycloak.phone.authentication.requiredactions;
 
+import cc.coopersoft.keycloak.phone.providers.constants.TokenCodeType;
 import cc.coopersoft.keycloak.phone.providers.spi.PhoneMessageService;
 import cc.coopersoft.keycloak.phone.providers.spi.TokenCodeService;
 import com.google.i18n.phonenumbers.NumberParseException;
@@ -95,7 +96,7 @@ public class UpdatePhoneNumberRequiredAction implements RequiredActionProvider {
         logger.infov("===== processAction.currentStep={0}", currentStep);
         try {
             if (currentStep.equals(STEP_VERIFY)) {
-                tokenCodeService.validateCodeOnly(context.getUser(), phoneNumber, code);
+                tokenCodeService.validateCodeOnly(context.getUser(), phoneNumber, code, TokenCodeType.VERIFY);
                 authSession.setAuthNote(NOTE_NAME, STEP_ADD);
                 form = setEnabledRegionAttribute(context, form);
                 context.challenge(form.createForm(TPL));

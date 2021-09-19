@@ -135,7 +135,7 @@ public class RegistrationPhoneAsUserNameCreation implements FormActionFactory, F
             return;
         }
 
-        if (context.getSession().users().getUserByUsername(phoneNumber, context.getRealm()) != null) {
+        if (context.getSession().users().getUserByUsername(context.getRealm(), phoneNumber) != null) {
             context.error(Errors.USERNAME_IN_USE);
             errors.add(new FormMessage(RegistrationPhoneNumber.FIELD_PHONE_NUMBER, Messages.USERNAME_EXISTS));
             formData.remove(RegistrationPhoneNumber.FIELD_PHONE_NUMBER);

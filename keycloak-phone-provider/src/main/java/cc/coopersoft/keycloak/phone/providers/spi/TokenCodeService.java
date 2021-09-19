@@ -15,7 +15,7 @@ public interface TokenCodeService extends Provider {
 
     void validateCode(UserModel user, String phoneNumber, String code);
 
-    void validateCodeOnly(UserModel user, String phoneNumber, String code);
+    void validateCodeOnly(UserModel user, String phoneNumber, String code, TokenCodeType tokenCodeType);
 
     void validateCode(UserModel user, String phoneNumber, String code, TokenCodeType tokenCodeType);
 
