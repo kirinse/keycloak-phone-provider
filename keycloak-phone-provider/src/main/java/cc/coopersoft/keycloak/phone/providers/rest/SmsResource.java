@@ -18,6 +18,10 @@ public class SmsResource {
         return new VerificationCodeResource(session);
     }
 
+    /**
+     * 用于登录, 所以要先检查是否存在
+     * @return
+     */
     @Path("authentication-code")
     public TokenCodeResource getAuthenticationCodeResource() {
         return new TokenCodeResource(session, TokenCodeType.OTP);
@@ -28,10 +32,12 @@ public class SmsResource {
         return new TokenCodeResource(session, TokenCodeType.REGISTRATION);
     }
 
+    /**
+     * 找回密码, 先检查号码是否存在
+     * @return
+     */
     @Path("reset-code")
     public TokenCodeResource getResetCodeResource() {
         return new TokenCodeResource(session, TokenCodeType.RESET);
     }
-
-
 }
