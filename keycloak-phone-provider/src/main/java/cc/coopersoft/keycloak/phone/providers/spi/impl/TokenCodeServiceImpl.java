@@ -56,6 +56,7 @@ public class TokenCodeServiceImpl implements TokenCodeService {
                     .setParameter("phoneNumber", phoneNumber)
                     .setParameter("now", new Date(), TemporalType.TIMESTAMP)
                     .setParameter("type", tokenCodeType.name())
+                    .setParameter("confirmed", false)
                     .getSingleResult();
 
             TokenCodeRepresentation tokenCodeRepresentation = new TokenCodeRepresentation();
