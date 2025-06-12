@@ -7,18 +7,19 @@ import cc.coopersoft.keycloak.phone.providers.constants.TokenCodeType;
 import cc.coopersoft.keycloak.phone.providers.spi.PhoneMessageService;
 import cc.coopersoft.keycloak.phone.utils.PhoneConstants;
 import cc.coopersoft.keycloak.phone.utils.PhoneNumber;
-import org.jboss.resteasy.spi.HttpResponse;
+//import org.jboss.resteasy.spi.HttpResponse;
 import org.keycloak.authentication.AuthenticationFlowContext;
 import org.keycloak.authentication.AuthenticationFlowError;
 import org.keycloak.authentication.Authenticator;
 import org.keycloak.authentication.CredentialValidator;
-import org.keycloak.common.util.ServerCookie;
+//import org.keycloak.common.util.ServerCookie;
 import org.keycloak.credential.CredentialProvider;
 import org.keycloak.models.*;
 
 import jakarta.ws.rs.ForbiddenException;
 import jakarta.ws.rs.core.Cookie;
-import jakarta.ws.rs.core.HttpHeaders;
+import jakarta.ws.rs.core.NewCookie;
+//import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MultivaluedMap;
 import jakarta.ws.rs.core.Response;
 import java.net.URI;
@@ -61,21 +62,28 @@ public class SmsOtpMfaAuthenticator implements Authenticator, CredentialValidato
                 .path("realms")
                 .path(context.getRealm().getName())
                 .build();
+        NewCookie newCookie = new NewCookie.Builder("SMS_OTP_ANSWERED").value("true")
+                .path(uri.getRawPath())
+                .maxAge(maxCookieAge)
+                .secure(false)
+                .httpOnly(true)
+                .build();
+        context.getSession().getContext().getHttpResponse().setCookieIfAbsent(newCookie);
 
-        addCookie(context, "SMS_OTP_ANSWERED", "true",
-                uri.getRawPath(),
-                null, null,
-                maxCookieAge,
-                false, true);
+//        addCookie(context, "SMS_OTP_ANSWERED", "true",
+//                uri.getRawPath(),
+//                null, null,
+//                maxCookieAge,
+//                false, true);
     }
 
-    public void addCookie(AuthenticationFlowContext context, String name, String value, String path, String domain, String comment, int maxAge, boolean secure, boolean httpOnly) {
-        HttpResponse response = context.getSession().getContext().getContextObject(HttpResponse.class);
-        StringBuilder cookieBuilder = new StringBuilder();
-        ServerCookie.appendCookieValue(cookieBuilder, 1, name, value, path, domain, comment, maxAge, secure, httpOnly, null);
-        String cookie = cookieBuilder.toString();
-        response.getOutputHeaders().add(HttpHeaders.SET_COOKIE, cookie);
-    }
+//    public void addCookie(AuthenticationFlowContext context, String name, String value, String path, String domain, String comment, int maxAge, boolean secure, boolean httpOnly) {
+//        HttpResponse response = context.getSession().getContext().getContextObject(HttpResponse.class);
+//        StringBuilder cookieBuilder = new StringBuilder();
+//        ServerCookie.appendCookieValue(cookieBuilder, 1, name, value, path, domain, comment, maxAge, secure, httpOnly, null);
+//        String cookie = cookieBuilder.toString();
+//        response.getOutputHeaders().add(HttpHeaders.SET_COOKIE, cookie);
+//    }
 
     @Override
     public PhoneOtpCredentialProvider getCredentialProvider(KeycloakSession session) {
